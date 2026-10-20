@@ -37,7 +37,7 @@ export function TopBar() {
         <div className="h-8 w-px bg-neutral-200 hidden sm:block"></div>
         <div className="flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-neutral-50 p-1.5 rounded-lg transition-colors">
           <div className="w-8 h-8 md:w-9 md:h-9 bg-neutral-200 rounded-full flex items-center justify-center overflow-hidden shrink-0">
-            <img src="/avatar.jpg" alt="User" className="w-full h-full object-cover" onError={(e) => e.currentTarget.src = 'https://ui-avatars.com/api/?name=Superadmin&background=C41E1E&color=fff'} />
+            <img src="" alt="User" className="w-full h-full object-cover" onError={(e) => e.currentTarget.src = 'https://ui-avatars.com/api/?name=Superadmin&background=C41E1E&color=fff&bold=true'} />
           </div>
           <div className="hidden md:block text-sm">
             <p className="font-semibold text-neutral-900 leading-tight">Superadmin</p>
@@ -49,3 +49,4 @@ export function TopBar() {
     </header>
   );
 }
+
