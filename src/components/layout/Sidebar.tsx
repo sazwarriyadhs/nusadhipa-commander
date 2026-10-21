@@ -2,10 +2,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { 
-  Home, Store, ShoppingBag, ShoppingCart, Wallet, Scale, Truck, 
+import {
+  Home, Store, ShoppingBag, ShoppingCart, Wallet, Scale, Truck, Bike,
   Brain, MapPin, Users, Headphones, Activity, FileText, Settings,
-  ChevronLeft, ChevronRight, Menu
+  ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
     items: [
       { name: "Overview", href: "/overview", icon: Home },
       { name: "Tenant & Business", href: "/tenants", icon: Store },
+      { name: "Couriers", href: "/couriers", icon: Bike },
       { name: "Marketplace", href: "/marketplace", icon: ShoppingBag },
       { name: "Orders", href: "/orders", icon: ShoppingCart },
       { name: "Finance", href: "/finance", icon: Wallet },
@@ -46,14 +47,14 @@ export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <aside 
+    <aside
       className={cn(
-        "bg-white border-r border-neutral-200 flex flex-col h-full shrink-0 transition-all duration-300 ease-in-out relative",
+        "bg-white border-r border-neutral-200 flex flex-col h-full shrink-0 transition-all duration-300 ease-in-out relative z-40",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
-      {/* Tombol Toggle Collapse (Floating di border kanan) */}
-      <button 
+      {/* Tombol Toggle Collapse */}
+      <button
         onClick={() => setIsCollapsed(!isCollapsed)}
         className="absolute -right-3 top-20 bg-white border border-neutral-200 rounded-full p-1 text-neutral-500 hover:text-brand-600 shadow-sm z-50 transition-colors"
       >
@@ -62,23 +63,23 @@ export function Sidebar() {
 
       {/* Logo Area */}
       <div className={cn(
-        "h-16 flex items-center border-b border-neutral-200 shrink-0 transition-all duration-300",
+        "h-[76px] flex items-center border-b border-neutral-200 shrink-0 transition-all duration-300",
         isCollapsed ? "justify-center px-0" : "px-6 justify-start"
       )}>
         <Link href="/overview" className="flex items-center justify-center">
-          <img 
-            src="/images/logo_nusadhipa.png" 
-            alt="NUSA-DHIPA" 
+          <img
+            src="/images/logo_nusadhipa.png"
+            alt="NUSA-DHIPA"
             className={cn(
               "object-contain transition-all duration-300",
-              isCollapsed ? "h-8 w-8" : "h-8 w-auto"
-            )} 
+              isCollapsed ? "h-9 w-9" : "h-10 w-auto max-w-[210px]"
+            )}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling?.classList.remove('hidden');
-            }} 
+            }}
           />
-          <span className={cn("text-brand-600 font-bold tracking-widest text-lg", isCollapsed ? "hidden" : "hidden")}>NUSA-DHIPA</span>
+          <span className="text-brand-600 font-bold tracking-widest text-lg hidden">NUSA-DHIPA</span>
         </Link>
       </div>
 
@@ -86,14 +87,13 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-thin scrollbar-thumb-neutral-200 scrollbar-track-transparent overflow-x-hidden">
         {NAV_ITEMS.map((group, i) => (
           <div key={i}>
-            {/* Label Group — Sembunyikan saat collapsed */}
             <p className={cn(
               "px-3 text-[11px] font-bold text-neutral-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
               isCollapsed ? "opacity-0 hidden" : "opacity-100 block"
             )}>
               {group.label}
             </p>
-            
+
             <nav className="space-y-1">
               {group.items.map((item) => {
                 const isActive = pathname === item.href;
@@ -105,12 +105,12 @@ export function Sidebar() {
                     className={cn(
                       "flex items-center rounded-lg text-sm font-medium transition-colors",
                       isCollapsed ? "justify-center px-0 py-3" : "px-3 py-2.5 gap-3",
-                      isActive 
-                        ? "bg-brand-50 text-brand-600" 
+                      isActive
+                        ? "bg-brand-600 text-white shadow-sm"
                         : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
                     )}
                   >
-                    <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-brand-600" : "text-neutral-500")} />
+                    <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-neutral-500")} />
                     <span className={cn(
                       "truncate transition-opacity duration-300",
                       isCollapsed ? "opacity-0 w-0 hidden" : "opacity-100 block"

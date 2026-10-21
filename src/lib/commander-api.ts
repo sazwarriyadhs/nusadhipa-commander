@@ -1,3 +1,4 @@
+import { getAuthHeaders } from "@/lib/auth-token";
 const BASE = process.env.NEXT_PUBLIC_COMMANDER_API ?? "http://localhost:4000/api/v1";
 
 export type DashboardStats = { total_tenants: number; total_products: number; total_orders: number; total_couriers: number; total_revenue: number | string; };
@@ -9,7 +10,7 @@ export type Product = { id: number; name: string; price: number; stock: number; 
 type ListResponse<T> = { items: T[]; total: number };
 
 async function getRaw(path: string): Promise<any> {
-  const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  const res = await fetch(`${BASE}${path}`, { cache: "no-store", headers: getAuthHeaders() });
   if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
   return res.json();
 }
@@ -83,7 +84,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function updateCourierStatus(id: number, status: string) {
-  const res = await fetch(`${BASE}/courier/admin/${id}/status`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+  const res = await fetch(`${BASE}/courier/admin/${id}/status`, { method: "PUT", headers: { "Content-Type": "application/json", ...getAuthHeaders() }, body: JSON.stringify({ status }) });
   if (!res.ok) return { success: false, message: `HTTP ${res.status}` };
   return await res.json();
 }

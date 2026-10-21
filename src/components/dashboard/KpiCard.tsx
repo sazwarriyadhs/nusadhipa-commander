@@ -12,9 +12,9 @@ export function KpiCard({ title, value, trend, icon: Icon }: KpiCardProps) {
   const isPositive = trend >= 0;
 
   return (
-    <Card className="p-5">
+    <Card className="p-4 md:p-5 rounded-xl border border-neutral-200 shadow-sm">
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
+        <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-brand-600">
           <Icon className="w-5 h-5" />
         </div>
         <span className="text-sm font-medium text-neutral-600">{title}</span>

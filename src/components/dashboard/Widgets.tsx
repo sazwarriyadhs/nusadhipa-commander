@@ -1,42 +1,175 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { Cloud, Database, Clock, CreditCard, Lightbulb, ChevronRight, Activity } from "lucide-react";
-import Link from "next/link";
 
-const healthItems = [
-  { name: "API Services", status: "Normal", detail: "Response 243 ms", icon: Cloud },
-  { name: "MySQL Database", status: "Normal", detail: "Uptime 99,98%", icon: Database },
-  { name: "Background Jobs", status: "Normal", detail: "Queue 0 pending", icon: Clock },
-  { name: "Payment Gateway", status: "Normal", detail: "Success Rate 99,2%", icon: CreditCard },
-];
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/Card";
+
+const API_BASE = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://api.nusadhipa.shop/api/v1"
+).replace(/\/+$/, "");
+
+type HealthState = {
+  label: string;
+  detail: string;
+  state: "checking" | "ok" | "error";
+};
+
+async function checkEndpoint(path: string): Promise<HealthState> {
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return {
+        label: path,
+        detail: `Endpoint merespons HTTP ${response.status}.`,
+        state: "error",
+      };
+    }
+
+    return {
+      label: path,
+      detail: `Endpoint merespons HTTP ${response.status}.`,
+      state: "ok",
+    };
+  } catch {
+    return {
+      label: path,
+      detail: "Tidak dapat mengakses endpoint dari browser.",
+      state: "error",
+    };
+  }
+}
+
+function StateBadge({ state }: { state: HealthState["state"] }) {
+  const style =
+    state === "ok"
+      ? "bg-green-50 text-green-700"
+      : state === "error"
+        ? "bg-red-50 text-red-700"
+        : "bg-gray-100 text-gray-600";
+
+  const label =
+    state === "ok"
+      ? "Merespons"
+      : state === "error"
+        ? "Gagal"
+        : "Memeriksa";
+
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${style}`}
+    >
+      {label}
+    </span>
+  );
+}
 
 export function SystemHealth() {
+  const [items, setItems] = useState<HealthState[]>([
+    {
+      label: "/health",
+      detail: "Memeriksa API…",
+      state: "checking",
+    },
+    {
+      label: "/health/db",
+      detail: "Memeriksa endpoint kesehatan database…",
+      state: "checking",
+    },
+  ]);
+
+  const [checking, setChecking] = useState(false);
+
+  async function refreshHealth() {
+    setChecking(true);
+
+    const results = await Promise.all([
+      checkEndpoint("/health"),
+      checkEndpoint("/health/db"),
+    ]);
+
+    setItems(results);
+    setChecking(false);
+  }
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      const results = await Promise.all([
+        checkEndpoint("/health"),
+        checkEndpoint("/health/db"),
+      ]);
+
+      if (active) {
+        setItems(results);
+      }
+    }
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const failed = items.filter((item) => item.state === "error").length;
+  const pending = items.some((item) => item.state === "checking");
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <Activity className="w-5 h-5 text-brand-600" />
-          <CardTitle>System Health</CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle>Kesehatan Layanan</CardTitle>
+          <button
+            type="button"
+            onClick={refreshHealth}
+            disabled={checking}
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {checking ? "Memeriksa…" : "Periksa ulang"}
+          </button>
         </div>
-        <Link href="/system" className="text-sm font-medium text-brand-600 hover:text-brand-700 flex items-center">
-          Lihat Detail <ChevronRight className="w-4 h-4 ml-1" />
-        </Link>
+        <p className="text-sm text-gray-500">
+          Pemeriksaan langsung endpoint dari browser pengguna.
+        </p>
       </CardHeader>
-      <CardContent className="p-0">
-        <div className="divide-y divide-neutral-100">
-          {healthItems.map((item, i) => (
-            <div key={i} className="flex items-center justify-between px-5 py-3">
-              <div className="flex items-center gap-3">
-                <item.icon className="w-4 h-4 text-neutral-500" />
-                <span className="text-sm font-medium text-neutral-700">{item.name}</span>
+
+      <CardContent>
+        <div className="space-y-4">
+          {items.map((item) => (
+            <div
+              key={item.label}
+              className="flex items-start justify-between gap-3"
+            >
+              <div className="min-w-0">
+                <div className="font-medium text-gray-900">
+                  {item.label}
+                </div>
+                <p className="mt-1 break-words text-xs text-gray-500">
+                  {item.detail}
+                </p>
               </div>
-              <div className="flex items-center gap-4 text-xs">
-                <span className="flex items-center gap-1.5 text-green-600 font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> {item.status}
-                </span>
-                <span className="text-neutral-400 w-28 text-right">{item.detail}</span>
-              </div>
+              <StateBadge state={item.state} />
             </div>
           ))}
+        </div>
+
+        <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs leading-5 text-gray-600">
+          {pending
+            ? "Pemeriksaan sedang berlangsung."
+            : failed === 0
+              ? "Kedua endpoint merespons. Ini tidak mengukur uptime historis, antrean pekerjaan, atau kesehatan layanan pembayaran."
+              : `${failed} endpoint gagal diperiksa. Periksa konektivitas API, CORS, dan log server.`}
         </div>
       </CardContent>
     </Card>
@@ -45,23 +178,36 @@ export function SystemHealth() {
 
 export function AiInsight() {
   return (
-    <Card className="bg-gradient-to-br from-brand-50 to-white border-brand-100">
-      <CardHeader className="border-none pb-0">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-brand-100 rounded-md">
-            <Lightbulb className="w-4 h-4 text-brand-600" />
-          </div>
-          <CardTitle>AI Business Insight</CardTitle>
-          <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-brand-600 bg-brand-100 px-1.5 py-0.5 rounded">Beta</span>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-neutral-600 leading-relaxed mb-4">
-          Penjualan Kategori <strong className="text-neutral-900">Makanan & Minuman</strong> meningkat <strong className="text-green-600">28,4%</strong> dalam 7 hari terakhir. Peluang terbaik untuk ekspansi adalah di wilayah Kabupaten Bogor dan Kota Depok.
+    <Card>
+      <CardHeader>
+        <CardTitle>AI Business Insight</CardTitle>
+        <p className="text-sm text-gray-500">
+          Analisis bisnis berbasis data terverifikasi.
         </p>
-        <button className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
-          Lihat Rekomendasi <ChevronRight className="w-4 h-4" />
-        </button>
+      </CardHeader>
+
+      <CardContent>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <div className="font-semibold text-amber-900">
+            Insight otomatis belum tersedia
+          </div>
+          <p className="mt-2 text-sm leading-6 text-amber-800">
+            Belum ada hasil analisis AI terverifikasi yang tersedia untuk
+            ditampilkan. Klaim pertumbuhan penjualan dan rekomendasi ekspansi
+            tidak ditampilkan sampai ada sumber data dan proses analisis yang
+            dapat diperiksa.
+          </p>
+        </div>
+
+        <Link
+          href="/ai"
+          className="mt-4 inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+        >
+          Buka modul AI
+          <span className="ml-2" aria-hidden="true">
+            →
+          </span>
+        </Link>
       </CardContent>
     </Card>
   );
