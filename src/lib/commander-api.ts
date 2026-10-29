@@ -1,5 +1,5 @@
 import { getAuthHeaders } from "@/lib/auth-token";
-const BASE = process.env.NEXT_PUBLIC_COMMANDER_API ?? "http://localhost:4000/api/v1";
+const BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.nusadhipa.shop/api/v1";
 
 export type DashboardStats = { total_tenants: number; total_products: number; total_orders: number; total_couriers: number; total_revenue: number | string; };
 export type Shipment = { order: string; status: string; amount: number | string; route_code?: string | null; };
@@ -44,7 +44,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     };
   } catch {
     const [t, p, o, c] = await Promise.all([
-      getList<any>("/admin/tenants").catch(() => ({ items: [], total: 0 })),
+      getList<any>("/businesses").catch(() => ({ items: [], total: 0 })),
       getList<any>("/products").catch(() => ({ items: [], total: 0 })),
       getList<any>("/orders").catch(() => ({ items: [], total: 0 })),
       getList<any>("/courier/admin/list").catch(() => ({ items: [], total: 0 })),
@@ -62,7 +62,7 @@ export async function getShipments(): Promise<Shipment[]> {
 }
 
 export async function getTenants(): Promise<Tenant[]> {
-  const { items } = await getList<any>("/admin/tenants").catch(() => ({ items: [], total: 0 }));
+  const { items } = await getList<any>("/businesses").catch(() => ({ items: [], total: 0 }));
   return items.map((t) => ({ id: Number(t.id ?? 0), business_name: String(t.business_name ?? t.name ?? "-"), city: String(t.city ?? "-"), status: String(t.status ?? "-"), verification_status: String(t.verification_status ?? "-") }));
 }
 
@@ -88,3 +88,4 @@ export async function updateCourierStatus(id: number, status: string) {
   if (!res.ok) return { success: false, message: `HTTP ${res.status}` };
   return await res.json();
 }
+
